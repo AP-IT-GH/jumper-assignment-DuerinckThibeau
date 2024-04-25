@@ -14,17 +14,35 @@ public class JumperAgent : Agent
     public Transform Collectable1;
     public Transform Collectable2;
 
-
-    public float speedMultiplier = 0.1f;
-    public float rotationMultiplier = 5;
-    public float jumpForce = 1000f;
-
-    private bool targetPickedUpObstacle1 = false;
-    private bool targetPickedUpObstacle2 = false;
-    private bool targetPickedUpCollectable1 = false;
-    private bool targetPickedUpCollectable2 = false;
+    public float jumpForce = 20;
 
     private bool isGrounded = true;
+
+    private float timeElapsed = 0;
+    private float episodeDuration = 11f;
+
+    void OnTriggerEnter(Collider other)
+    {
+      if (other.gameObject.tag == "Obstacle")
+      {
+        AddReward(-0.2f);
+        EndEpisode();
+      }
+      if(other.gameObject.tag == "Collectable")
+      {
+        AddReward(0.2f);
+        other.gameObject.SetActive(false);
+      }
+    }
+
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.tag == "Floor")
+        {
+          isGrounded = true;
+        }
+    }
 
     public override void OnEpisodeBegin()
     {
@@ -33,69 +51,36 @@ public class JumperAgent : Agent
         Collectable1.gameObject.SetActive(true);
         Collectable2.gameObject.SetActive(true);
 
-
-        targetPickedUpObstacle1 = false;
-        targetPickedUpObstacle2 = false;
-        targetPickedUpCollectable1 = false;
-        targetPickedUpCollectable2 = false;
-        // reset de positie en orientatie als de agent gevallen is
-     
-        // verplaats de target naar een nieuwe willekeurige locatie 
-        Obstacle1.localPosition = new Vector3(28, 1, 0);
-        Obstacle2.localPosition = new Vector3(0, 1, -25);
-        Collectable1.localPosition = new Vector3(24, 1, 0);
-        Collectable2.localPosition = new Vector3(0, 1, -29);
+        Obstacle1.localPosition = new Vector3(14, 1, 0);
+        Obstacle2.localPosition = new Vector3(0, 1, -70);
+        Collectable1.localPosition = new Vector3(30, 1, 0);
+        Collectable2.localPosition = new Vector3(0, 1, -55);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        // Agent positie
         sensor.AddObservation(transform.localPosition);
-        //sensor.AddObservation(TargetZone.localPosition);
-        //sensor.AddObservation(Vector3.Distance(transform.localPosition, TargetZone.localPosition));
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        // Jumping action
-        if (actionBuffers.DiscreteActions[0] == 1) // Assuming DiscreteActions[0] represents the jump action
+        if (actionBuffers.DiscreteActions[0] == 1)
         {
             Jump();
         }
-
-        // Rewards
-        //float distanceToTarget = Vector3.Distance(transform.localPosition, Target.localPosition);
-
-        // Target reached
-        //if (!targetPickedUp && distanceToTarget < 1.42f)
-        //{
-        //    Target.gameObject.SetActive(false);
-        //    targetPickedUp = true;
-        //    AddReward(0.4f);
-        //}
-
-        //// Back at TargetZone
-        //if (targetPickedUp && transform.localPosition.x < -5)
-        //{
-        //    AddReward(0.6f);
-        //    EndEpisode();
-        //}
-
-        //// Fallen off the platform?
-        //if (transform.localPosition.y < 0)
-        //{
-        //    SetReward(0);
-        //    EndEpisode();
-        //}
+        else if (transform.localPosition.y < 0)
+        {
+            AddReward(-0.4f);
+            EndEpisode();
+        }
     }
 
-    void Jump()
+    public void Jump()
     {
-        if (GetComponent<Rigidbody>() != null) // Assuming you have a way to check if the object is on the ground
+        if (isGrounded)
         {
-            // Apply a jump force in the upward direction
-            GetComponent<Rigidbody>().AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
+          transform.GetComponent<Rigidbody>().AddRelativeForce(Vector3.up * jumpForce);
+          isGrounded = false;
         }
     }
 
@@ -103,5 +88,18 @@ public class JumperAgent : Agent
     {
         var discreteActionsOut = actionsOut.DiscreteActions;
         discreteActionsOut[0] = Input.GetKey(KeyCode.Space) ? 1 : 0;
+    }
+
+    public  void Update()
+    {
+      timeElapsed += Time.fixedDeltaTime;  
+
+      if (timeElapsed >= episodeDuration)  
+      {
+        AddReward(0.5f);
+        timeElapsed = 0;
+        EndEpisode();  
+      }
+
     }
 }
