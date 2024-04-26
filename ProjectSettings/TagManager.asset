@@ -4,14 +4,15 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - Obstacle
+  - Agent
   - Floor
   - Collectable
-  - Obstacle
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Agent
   - Water
   - UI
   - 
