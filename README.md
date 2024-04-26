@@ -22,8 +22,6 @@ In deze opdracht trainen we een agent om ofwel over een object heen te springen 
 
 De penalty voor het foutief springen zorgt ervoor dat de agent niet onnodig zal springen.
 
-## Unity Objects Configuratie
-
 ## Agent Configuratie:
 
 **jumper.yaml**:
