@@ -1,7 +1,9 @@
 # Jumper Assignment
 
 **Team:**
+
 Thibeau Duerinck - S129732
+
 Nicolas Schoofs - S130014
 
 ## Doel
